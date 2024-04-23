@@ -5,6 +5,7 @@ namespace APBD6.Warehouse;
 
 public interface IWarehouseRepository
 {
+    Task<Warehouse?> GetWarehouse(int id);
     Task<int?> RegisterProduct(int idWarehouse, int idProduct, int idOrder, DateTime createdAt);
 }
 
@@ -15,7 +16,24 @@ public class WarehouseRepository : IWarehouseRepository
     {
         _configuration = configuration;
     }
-    
+
+    public async Task<Warehouse?> GetWarehouse(int id)
+    {
+        await using var connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
+        await connection.OpenAsync();
+        var query = "SELECT IdWarehouse, Name, Address FROM s29143.Warehouse WHERE id=@Id";
+        await using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("Id", id);
+        var reader = await command.ExecuteReaderAsync();
+        reader.Read();
+        return new Warehouse
+        {
+            IdWarehouse = (int)reader["IdWarehouse"],
+            Name = reader["Name"].ToString()!,
+            Address = reader["Address"].ToString()!,
+        };
+    }
+
     public async Task<int?> RegisterProduct(int idWarehouse, int idProduct, int idOrder, DateTime createdAt)
     {
         await using var connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
@@ -25,7 +43,7 @@ public class WarehouseRepository : IWarehouseRepository
 
         try
         {
-            var query = "UPDATE \"Order\" SET FulfilledAt = @FulfilledAt WHERE IdOrder = @IdOrder";
+            var query = "UPDATE \"s29143.Order\" SET FulfilledAt = @FulfilledAt WHERE IdOrder = @IdOrder";
             await using var command = new SqlCommand(query, connection);
             command.Transaction = (SqlTransaction)transaction;
             command.Parameters.AddWithValue("@IdOrder", idOrder);
@@ -33,7 +51,7 @@ public class WarehouseRepository : IWarehouseRepository
             await command.ExecuteNonQueryAsync();
             
             command.CommandText = @"
-                      INSERT INTO Product_Warehouse (IdWarehouse, IdProduct, IdOrder, CreatedAt, Amount, Price)
+                      INSERT INTO s29143.Product_Warehouse (IdWarehouse, IdProduct, IdOrder, CreatedAt, Amount, Price)
                       OUTPUT Inserted.IdProductWarehouse
                       VALUES (@IdWarehouse, @IdProduct, @IdOrder, @CreatedAt, 0, 0);";
             command.Parameters.Clear();

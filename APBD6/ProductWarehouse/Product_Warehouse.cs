@@ -1,6 +1,6 @@
-﻿namespace WebApplication2.Models;
+﻿namespace APBD6.Models;
 
-public class ProductWarehouse
+public class Product_Warehouse
 {
     public int IdProductWarehouse { get; set; }
     public int IdWarehouse { get; set; }

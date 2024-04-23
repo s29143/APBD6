@@ -1,3 +1,5 @@
+using APBD6.Models;
+using APBD6.Order;
 using APBD6.Warehouse;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProduct_WarehouseRepository, Product_WarehouseRepository>();
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
